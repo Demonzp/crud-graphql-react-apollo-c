@@ -16,12 +16,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Сross-origin resource sharing permission.
 app.use(cors());
 
-const { Product } = require('./models/Product');
-
 app.use('/graphql', graphqlHTTP({
   schema: graphqlSchema,
   rootValue: graphqlResolver,
-  graphiql: true,
+  // graphiql: true,
 }));
 
 // // Seeds injection.

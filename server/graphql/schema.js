@@ -12,6 +12,7 @@ module.exports = buildSchema(`
   }
 
   type DeleteResponse {
+    _id: ID!
     result: Boolean!
   }
 
