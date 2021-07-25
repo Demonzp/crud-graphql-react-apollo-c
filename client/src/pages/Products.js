@@ -81,17 +81,14 @@ const Products = () => {
     // POST
     const addProductHandler = async () => {
         try {
-            const result = await createProduct({
+            await createProduct({
                 variables: {
                     name: createProductName,
                     price: Number(createProductPrice),
                 }
             });
 
-            const newProduct = result.data.createProduct;
-            const updProducts = [...products, { ...newProduct }];
 
-            setProducts(updProducts);
             toggleCreateProductModal();
         } catch (err) {
             console.error(err);
@@ -101,24 +98,13 @@ const Products = () => {
     // EDIT - NOT FULLY WORKING YET
     const updateProductHandler = async () => {
         try {
-            const result = await updateProduct({
+            await updateProduct({
                 variables: {
                     _id: editProductId,
                     name: editProductName,
                     price: Number(editProductPrice),
                 }
             });
-
-            const updElement = result.data.updateProduct;
-            const index = products.findIndex((el) => el._id === editProductId);
-
-            const updProducts = [
-                ...products.slice(0, index),
-                updElement,
-                ...products.slice(index + 1)
-            ];
-
-            setProducts(updProducts);
             toggleEditProductModal();
         } catch (err) {
             console.error(err);
@@ -145,14 +131,6 @@ const Products = () => {
                     _id
                 }
             });
-
-            const index = products.findIndex((el) => el._id === _id);
-            const updProducts = [
-                ...products.slice(0, index),
-                ...products.slice(index + 1),
-            ];
-
-            setProducts(updProducts);
         } catch (err) {
             console.error(err);
         };
