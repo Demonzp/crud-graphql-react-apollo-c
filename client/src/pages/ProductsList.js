@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Form, FormGroup, Input, Label, Modal, ModalHeader, ModalBody, ModalFooter, Table, Col } from 'reactstrap';
@@ -19,11 +19,43 @@ const ProductsList = () => {
 
   const toggleCreateProductModal = () => setCreateProductModal(!createProductModal);
   const toggleEditProductModal = () => setEditProductModal(!editProductModal);
-
-  const { data: dataLoadProd, refetch } = useQuery(GET_PRODUCTS);
-  const [addProduct] = useMutation(ADD_PRODUCT, {onCompleted: ()=>refetch()});
-  const [delProduct] = useMutation(DELETE_PRODUCT, {onCompleted: ()=>refetch()});
-  const [updateProduct] = useMutation(UPDATE_PRODUCT, {onCompleted: ()=>refetch()});
+  
+  const { data: dataLoadProd } = useQuery(GET_PRODUCTS);
+  const [addProduct] = useMutation(ADD_PRODUCT, {
+    update(cache, { data: { createProduct } }) {
+      cache.modify({
+        fields: {
+          getProducts(existingProducts = []) {
+            const newProductRef = cache.writeFragment({
+              data: createProduct,
+              fragment: gql`
+                          fragment NewProduct on GetProducts {
+                              _id
+                              name
+                              price
+                          }
+                      `
+            });
+            return [...existingProducts, newProductRef];
+          }
+        }
+      })
+    }
+  });
+  const [delProduct] = useMutation(DELETE_PRODUCT, {
+    update(cache, { data: { deleteProduct } }) {
+      cache.modify({
+        fields: {
+          getProducts(existingProducts = [], { readField }) {
+            return existingProducts.filter(
+              productRef => deleteProduct._id !== readField('_id', productRef)
+            );
+          }
+        }
+      })
+    }
+  });
+  const [updateProduct] = useMutation(UPDATE_PRODUCT);
 
   useEffect(() => {
     if (dataLoadProd) {
@@ -40,11 +72,13 @@ const ProductsList = () => {
   };
 
   const updateProductHandler = () => {
-    updateProduct({variables:{
-      _id: editProductId,
-      name: editProductName,
-      price: Number(editProductPrice)
-    }});
+    updateProduct({
+      variables: {
+        _id: editProductId,
+        name: editProductName,
+        price: Number(editProductPrice)
+      }
+    });
     toggleEditProductModal();
   };
 

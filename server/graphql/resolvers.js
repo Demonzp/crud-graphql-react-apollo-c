@@ -73,7 +73,7 @@ module.exports = {
       } else {
         console.log('DELETE FAILED!');
       }
-      return { result };
+      return { result, _id: args._id };
     } catch (err) {
       console.error(err);
     };
